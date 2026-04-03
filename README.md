@@ -2,6 +2,8 @@
 
 A Zack McKracken-style point-and-click space adventure game
 
+**[Play now →](https://xman-berlin.github.io/cosmic-quest/)**
+
 ## About
 
 Explore different rooms/locations across the cosmos, solve interconnected puzzles, collect items, and progress through a narrative-driven adventure. Built with Phaser.js for rich 2D graphics including parallax backgrounds, particle effects, and atmospheric lighting.
@@ -15,13 +17,13 @@ Explore different rooms/locations across the cosmos, solve interconnected puzzle
 | Build Tool | Vite |
 | Graphics | Phaser Renderer + Custom Shaders |
 | Audio | Phaser Audio + Web Audio API |
-| Deployment | Vercel or GitHub Pages |
+| Deployment | GitHub Pages |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - npm
 
 ### Installation
