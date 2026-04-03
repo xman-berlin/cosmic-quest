@@ -1,0 +1,114 @@
+{
+  "rooms": [
+    {
+      "id": "ship_bridge",
+      "name": "Starship Bridge",
+      "theme": {
+        "bgTop": "#0a0a2e",
+        "bgBottom": "#1a1a4e",
+        "accent": "#4488ff"
+      },
+      "exits": [
+        { "direction": "down", "target": "corridor", "label": "To Corridor", "hotspot": { "x": 860, "y": 900, "width": 200, "height": 80 } }
+      ],
+      "hotspots": [
+        { "id": "main_console", "x": 960, "y": 500, "width": 300, "height": 200, "label": "Main Console", "action": "examine_console" },
+        { "id": "viewscreen", "x": 960, "y": 200, "width": 400, "height": 150, "label": "Viewscreen", "action": "examine_viewscreen" },
+        { "id": "captain_chair", "x": 960, "y": 650, "width": 150, "height": 100, "label": "Captain's Chair", "action": "examine_chair" }
+      ],
+      "parallaxLayers": [
+        { "speed": 0.05, "starCount": 100, "starSize": 1, "color": "0x8888cc" },
+        { "speed": 0.15, "starCount": 60, "starSize": 1.5, "color": "0xaabbff" },
+        { "speed": 0.3, "starCount": 30, "starSize": 2, "color": "0xffffff" }
+      ]
+    },
+    {
+      "id": "corridor",
+      "name": "Main Corridor",
+      "theme": {
+        "bgTop": "#1a1a1a",
+        "bgBottom": "#2a2a2a",
+        "accent": "#888888"
+      },
+      "exits": [
+        { "direction": "up", "target": "ship_bridge", "label": "To Bridge", "hotspot": { "x": 860, "y": 100, "width": 200, "height": 80 } },
+        { "direction": "right", "target": "engine_room", "label": "To Engine Room", "hotspot": { "x": 1720, "y": 440, "width": 100, "height": 200 } },
+        { "direction": "left", "target": "crew_quarters", "label": "To Quarters", "hotspot": { "x": 100, "y": 440, "width": 100, "height": 200 } }
+      ],
+      "hotspots": [
+        { "id": "wall_panel", "x": 400, "y": 400, "width": 120, "height": 160, "label": "Wall Panel", "action": "examine_panel" },
+        { "id": "emergency_locker", "x": 1400, "y": 400, "width": 100, "height": 160, "label": "Emergency Locker", "action": "examine_locker" }
+      ],
+      "parallaxLayers": [
+        { "speed": 0.02, "starCount": 40, "starSize": 1, "color": "0x444444" },
+        { "speed": 0.08, "starCount": 20, "starSize": 1.5, "color": "0x666666" }
+      ]
+    },
+    {
+      "id": "engine_room",
+      "name": "Engine Room",
+      "theme": {
+        "bgTop": "#2e0a0a",
+        "bgBottom": "#4e1a1a",
+        "accent": "#ff4444"
+      },
+      "exits": [
+        { "direction": "left", "target": "corridor", "label": "To Corridor", "hotspot": { "x": 100, "y": 440, "width": 100, "height": 200 } }
+      ],
+      "hotspots": [
+        { "id": "warp_core", "x": 960, "y": 400, "width": 200, "height": 300, "label": "Warp Core", "action": "examine_warp_core" },
+        { "id": "engineering_console", "x": 1500, "y": 500, "width": 200, "height": 150, "label": "Engineering Console", "action": "examine_eng_console" },
+        { "id": "fuel_gauge", "x": 400, "y": 500, "width": 120, "height": 100, "label": "Fuel Gauge", "action": "examine_fuel" }
+      ],
+      "parallaxLayers": [
+        { "speed": 0.03, "starCount": 30, "starSize": 1, "color": "0xff6644" },
+        { "speed": 0.1, "starCount": 20, "starSize": 2, "color": "0xff8866" },
+        { "speed": 0.2, "starCount": 10, "starSize": 3, "color": "0xffaa88" }
+      ]
+    },
+    {
+      "id": "crew_quarters",
+      "name": "Crew Quarters",
+      "theme": {
+        "bgTop": "#0a2e0a",
+        "bgBottom": "#1a4e1a",
+        "accent": "#44ff44"
+      },
+      "exits": [
+        { "direction": "right", "target": "corridor", "label": "To Corridor", "hotspot": { "x": 1720, "y": 440, "width": 100, "height": 200 } }
+      ],
+      "hotspots": [
+        { "id": "bunk_bed", "x": 500, "y": 500, "width": 200, "height": 150, "label": "Bunk Bed", "action": "examine_bunk" },
+        { "id": "personal_terminal", "x": 1400, "y": 400, "width": 180, "height": 140, "label": "Personal Terminal", "action": "examine_terminal" },
+        { "id": "locker", "x": 960, "y": 300, "width": 100, "height": 180, "label": "Personal Locker", "action": "examine_locker" }
+      ],
+      "parallaxLayers": [
+        { "speed": 0.04, "starCount": 25, "starSize": 1, "color": "0x44aa44" },
+        { "speed": 0.12, "starCount": 15, "starSize": 1.5, "color": "0x66cc66" }
+      ]
+    },
+    {
+      "id": "observation_deck",
+      "name": "Observation Deck",
+      "theme": {
+        "bgTop": "#1a0a2e",
+        "bgBottom": "#2e1a4e",
+        "accent": "#aa44ff"
+      },
+      "exits": [
+        { "direction": "left", "target": "ship_bridge", "label": "To Bridge", "hotspot": { "x": 100, "y": 440, "width": 100, "height": 200 } }
+      ],
+      "hotspots": [
+        { "id": "observation_window", "x": 960, "y": 300, "width": 600, "height": 300, "label": "Observation Window", "action": "look_out_window" },
+        { "id": "star_chart", "x": 300, "y": 500, "width": 150, "height": 120, "label": "Star Chart", "action": "examine_chart" },
+        { "id": "telescope", "x": 1600, "y": 400, "width": 120, "height": 200, "label": "Telescope", "action": "use_telescope" }
+      ],
+      "parallaxLayers": [
+        { "speed": 0.02, "starCount": 150, "starSize": 1, "color": "0x8866aa" },
+        { "speed": 0.08, "starCount": 80, "starSize": 1.5, "color": "0xaa88cc" },
+        { "speed": 0.2, "starCount": 40, "starSize": 2, "color": "0xccbbee" },
+        { "speed": 0.4, "starCount": 15, "starSize": 3, "color": "0xffffff" }
+      ]
+    }
+  ]
+}
