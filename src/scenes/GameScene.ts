@@ -1,19 +1,23 @@
 import { Scene, GameObjects } from 'phaser';
 import { RoomManager } from '../systems/RoomManager.js';
+import { InventorySystem } from '../systems/InventorySystem.js';
 import { Hotspot } from '../entities/Hotspot.js';
 import { Player } from '../entities/Player.js';
 import { BackgroundRenderer } from '../effects/BackgroundRenderer.js';
-import type { IRoomsData } from '../entities/types.js';
+import type { IRoomsData, IItemsData } from '../entities/types.js';
 
 import roomsJson from '../data/rooms.json' with { type: 'json' };
+import itemsJson from '../data/items.json' with { type: 'json' };
 
 export class GameScene extends Scene {
   #roomManager!: RoomManager;
+  #inventorySystem!: InventorySystem;
   #player!: Player;
   #bgRenderer!: BackgroundRenderer;
   #hotspots: Hotspot[] = [];
   #roomNameText!: GameObjects.Text;
   #minimapText!: GameObjects.Text;
+  #messageText!: GameObjects.Text;
   #isTransitioning = false;
 
   constructor() {
@@ -22,15 +26,24 @@ export class GameScene extends Scene {
 
   create() {
     const roomsData = roomsJson as IRoomsData;
+    const itemsData = itemsJson as IItemsData;
+
     this.#roomManager = new RoomManager(roomsData);
+    this.#inventorySystem = new InventorySystem(itemsData, this.#roomManager.saveData);
     this.#bgRenderer = new BackgroundRenderer(this);
     this.#player = new Player(this);
+
+    this.#inventorySystem.onEvent = (_event, result) => {
+      this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
+    };
 
     this.#roomManager.onRoomChange = () => {
       this.#renderRoom();
     };
 
     this.#createMinimap();
+    this.#createMessageArea();
+    this.#createInventoryToggle();
 
     this.cameras.main.fadeIn(500);
 
@@ -79,9 +92,30 @@ export class GameScene extends Scene {
       );
 
       hotspot.on('pointerdown', () => {
-        hotspot.activate();
-        this.#roomManager.activateHotspot(room.id, hs.id);
-        this.#showInteractionMessage(hs.label, hs.action);
+        this.#handleHotspotInteraction(room.id, hs);
+      });
+
+      this.add.existing(hotspot);
+      this.#hotspots.push(hotspot);
+    }
+
+    const roomState = this.#roomManager.getRoomState(room.id);
+    const collectedItems = roomState?.itemsCollected ?? [];
+
+    for (const pickup of room.items) {
+      if (collectedItems.includes(pickup.id)) continue;
+
+      const hotspot = new Hotspot(
+        this,
+        pickup.x,
+        pickup.y,
+        pickup,
+        'pickup',
+        0x44ffaa,
+      );
+
+      hotspot.on('pointerdown', () => {
+        this.#handleItemPickup(room.id, pickup);
       });
 
       this.add.existing(hotspot);
@@ -95,6 +129,38 @@ export class GameScene extends Scene {
     }).setOrigin(0.5, 0);
 
     this.#updateMinimap();
+  }
+
+  #handleHotspotInteraction(roomId: string, hs: { id: string; label: string; action: string }) {
+    const selectedItem = this.#inventorySystem.selectedItem;
+
+    if (selectedItem) {
+      const result = this.#inventorySystem.useItemOn(selectedItem, hs.id);
+      if (result.success) {
+        this.#showMessage(result.message, '#44ff44');
+        return;
+      }
+    }
+
+    const hotspot = this.#hotspots.find((h) => h.hotspotType === 'interactive');
+    hotspot?.activate();
+    this.#roomManager.activateHotspot(roomId, hs.id);
+    this.#showMessage(`You examine the ${hs.label}...`, '#aaccff');
+  }
+
+  #handleItemPickup(roomId: string, pickup: { id: string; itemId: string; label: string }) {
+    const result = this.#inventorySystem.addItem(pickup.itemId);
+
+    if (result.success) {
+      const roomState = this.#roomManager.getRoomState(roomId);
+      if (roomState && !roomState.itemsCollected.includes(pickup.id)) {
+        roomState.itemsCollected.push(pickup.id);
+      }
+      this.#showMessage(result.message, '#44ffaa');
+      this.#renderRoom();
+    } else {
+      this.#showMessage(result.message, '#ff4444');
+    }
   }
 
   #clearRoom() {
@@ -120,20 +186,26 @@ export class GameScene extends Scene {
     });
   }
 
-  #showInteractionMessage(label: string, _action: string) {
-    const msg = this.add.text(960, 1000, `You examine the ${label}...`, {
+  #showMessage(text: string, color: string) {
+    this.#messageText?.destroy();
+    this.#messageText = this.add.text(960, 1000, text, {
       font: '20px monospace',
-      color: '#ffffff',
+      color,
       backgroundColor: '#00000088',
       padding: { x: 20, y: 10 },
     }).setOrigin(0.5, 0);
 
     this.tweens.add({
-      targets: msg,
+      targets: this.#messageText,
       alpha: 0,
-      delay: 2000,
+      delay: 2500,
       duration: 500,
-      onComplete: () => msg.destroy(),
+      onComplete: () => {
+        if (this.#messageText) {
+          this.#messageText.destroy();
+          this.#messageText = undefined as unknown as GameObjects.Text;
+        }
+      },
     });
   }
 
@@ -173,7 +245,6 @@ export class GameScene extends Scene {
 
     for (const room of allRooms) {
       if (visited.has(room.id) && current?.id !== room.id) {
-        const targetId = room.id;
         this.#minimapText.setInteractive(
           new Phaser.Geom.Rectangle(
             20,
@@ -195,6 +266,68 @@ export class GameScene extends Scene {
         });
       }
     }
+  }
+
+  #createMessageArea() {
+    this.#messageText = this.add.text(960, 1000, '', {
+      font: '20px monospace',
+      color: '#ffffff',
+    }).setOrigin(0.5, 0).setVisible(false);
+  }
+
+  #createInventoryToggle() {
+    const toggleBtn = this.add.text(this.cameras.main.width - 20, 20, '[I]', {
+      font: 'bold 16px monospace',
+      color: '#4488ff',
+      backgroundColor: '#000000aa',
+      padding: { x: 8, y: 4 },
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setScrollFactor(0);
+
+    toggleBtn.on('pointerdown', () => {
+      if (!this.#isTransitioning) {
+        this.scene.launch('inventory', { inventorySystem: this.#inventorySystem });
+      }
+    });
+
+    toggleBtn.on('pointerover', () => {
+      toggleBtn.setStyle({ backgroundColor: '#2244aa' });
+    });
+
+    toggleBtn.on('pointerout', () => {
+      toggleBtn.setStyle({ backgroundColor: '#000000aa' });
+    });
+
+    this.input.keyboard?.on('keydown-I', () => {
+      if (!this.#isTransitioning) {
+        this.scene.launch('inventory', { inventorySystem: this.#inventorySystem });
+      }
+    });
+
+    this.input.keyboard?.on('keydown-Q', () => {
+      const selectedItem = this.#inventorySystem.selectedItem;
+      if (selectedItem) {
+        const result = this.#inventorySystem.removeItem(selectedItem);
+        this.#showMessage(result.message, result.success ? '#ffaa44' : '#ff4444');
+      } else {
+        this.#showMessage('No item selected to drop', '#ff4444');
+      }
+    });
+
+    this.input.keyboard?.on('keydown-ONE', () => {
+      this.#player.setMode('look');
+    });
+
+    this.input.keyboard?.on('keydown-TWO', () => {
+      this.#player.setMode('use');
+    });
+
+    this.input.keyboard?.on('keydown-THREE', () => {
+      this.#player.setMode('talk');
+    });
+
+    this.input.keyboard?.on('keydown-ESC', () => {
+      this.#player.setMode('default');
+    });
   }
 
   update(_time: number, _delta: number) {

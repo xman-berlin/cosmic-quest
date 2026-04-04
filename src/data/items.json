@@ -1,0 +1,154 @@
+{
+  "items": [
+    {
+      "id": "keycard",
+      "name": "Security Keycard",
+      "description": "A blue keycard with clearance level 3. Grants access to restricted areas.",
+      "iconColor": "#4488ff",
+      "usable": true,
+      "useTargets": ["main_console", "engineering_console"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "data_chip",
+      "name": "Data Chip",
+      "description": "A small crystalline data storage device. Contains encrypted ship logs.",
+      "iconColor": "#44ffaa",
+      "usable": true,
+      "useTargets": ["personal_terminal"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "hydro_spanner",
+      "name": "Hydro Spanner",
+      "description": "A multipurpose engineering tool. Essential for warp core repairs.",
+      "iconColor": "#ffaa44",
+      "usable": true,
+      "useTargets": ["warp_core", "fuel_gauge"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "power_cell",
+      "name": "Power Cell",
+      "description": "A portable energy source. Glows faintly with contained plasma.",
+      "iconColor": "#ff4444",
+      "usable": true,
+      "useTargets": ["engineering_console"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "ration_pack",
+      "name": "Ration Pack",
+      "description": "Standard issue space rations. Tastes like regret and cardboard.",
+      "iconColor": "#aaaa44",
+      "usable": true,
+      "useTargets": ["captain_chair"],
+      "combineWith": "water_filter",
+      "combineResult": "survival_kit"
+    },
+    {
+      "id": "water_filter",
+      "name": "Water Filter",
+      "description": "A portable water purification device. Still in its original packaging.",
+      "iconColor": "#44aaff",
+      "usable": false,
+      "useTargets": [],
+      "combineWith": "ration_pack",
+      "combineResult": "survival_kit"
+    },
+    {
+      "id": "survival_kit",
+      "name": "Survival Kit",
+      "description": "A combined ration and water supply. Enough for 72 hours.",
+      "iconColor": "#88ff88",
+      "usable": true,
+      "useTargets": ["viewscreen"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "encrypted_log",
+      "name": "Encrypted Log",
+      "description": "A decoded ship log revealing the crew's last known coordinates.",
+      "iconColor": "#aa88ff",
+      "usable": true,
+      "useTargets": ["viewscreen"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "multi_tool",
+      "name": "Multi-Tool",
+      "description": "A compact Swiss-army-knife equivalent. Has a laser pointer.",
+      "iconColor": "#cccccc",
+      "usable": true,
+      "useTargets": ["wall_panel", "emergency_locker"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "id_badge",
+      "name": "ID Badge",
+      "description": "Belonged to Engineer Chen. Clearance level 2.",
+      "iconColor": "#ff8844",
+      "usable": true,
+      "useTargets": ["main_console"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "star_map",
+      "name": "Star Map Fragment",
+      "description": "A torn piece of a star chart. Shows an uncharted system.",
+      "iconColor": "#88aaff",
+      "usable": true,
+      "useTargets": ["star_chart", "telescope"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "lens_cap",
+      "name": "Telescope Lens Cap",
+      "description": "The missing lens cap for the observation deck telescope.",
+      "iconColor": "#666666",
+      "usable": true,
+      "useTargets": ["telescope"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "crew_manifest",
+      "name": "Crew Manifest",
+      "description": "Lists all personnel aboard. Several names are crossed out.",
+      "iconColor": "#ffcc44",
+      "usable": true,
+      "useTargets": ["captain_chair"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "warp_coil",
+      "name": "Warp Coil",
+      "description": "A replacement coil for the warp core. Heavy and warm to the touch.",
+      "iconColor": "#ff6644",
+      "usable": true,
+      "useTargets": ["warp_core"],
+      "combineWith": null,
+      "combineResult": null
+    },
+    {
+      "id": "comms_beacon",
+      "name": "Comms Beacon",
+      "description": "A distress signal emitter. Range: 4 light years.",
+      "iconColor": "#ff44aa",
+      "usable": true,
+      "useTargets": ["viewscreen"],
+      "combineWith": null,
+      "combineResult": null
+    }
+  ]
+}

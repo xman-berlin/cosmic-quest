@@ -1,7 +1,7 @@
 import { GameObjects, Scene } from 'phaser';
-import type { IHotspotDef, IExitDef } from '../entities/types.js';
+import type { IHotspotDef, IExitDef, IItemPickupDef } from '../entities/types.js';
 
-export type HotspotType = 'exit' | 'interactive';
+export type HotspotType = 'exit' | 'interactive' | 'pickup';
 
 export class Hotspot extends GameObjects.Container {
   #bg: GameObjects.Graphics;
@@ -16,7 +16,7 @@ export class Hotspot extends GameObjects.Container {
     scene: Scene,
     x: number,
     y: number,
-    def: IHotspotDef | IExitDef,
+    def: IHotspotDef | IExitDef | IItemPickupDef,
     hotspotType: HotspotType,
     accentColor: number,
   ) {
@@ -34,6 +34,13 @@ export class Hotspot extends GameObjects.Container {
       hsW = exit.hotspot.width;
       hsH = exit.hotspot.height;
       labelText = exit.label;
+    } else if ('itemId' in def) {
+      const pickup = def as IItemPickupDef;
+      hsW = 48;
+      hsH = 48;
+      hsX = pickup.x - hsW / 2;
+      hsY = pickup.y - hsH / 2;
+      labelText = pickup.label;
     } else {
       const hs = def as IHotspotDef;
       hsX = hs.x;

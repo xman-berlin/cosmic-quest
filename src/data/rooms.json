@@ -16,6 +16,10 @@
         { "id": "viewscreen", "x": 960, "y": 200, "width": 400, "height": 150, "label": "Viewscreen", "action": "examine_viewscreen" },
         { "id": "captain_chair", "x": 960, "y": 650, "width": 150, "height": 100, "label": "Captain's Chair", "action": "examine_chair" }
       ],
+      "items": [
+        { "id": "pickup_keycard", "itemId": "keycard", "x": 960, "y": 550, "label": "Security Keycard" },
+        { "id": "pickup_id_badge", "itemId": "id_badge", "x": 960, "y": 680, "label": "ID Badge" }
+      ],
       "parallaxLayers": [
         { "speed": 0.05, "starCount": 100, "starSize": 1, "color": "0x8888cc" },
         { "speed": 0.15, "starCount": 60, "starSize": 1.5, "color": "0xaabbff" },
@@ -39,6 +43,10 @@
         { "id": "wall_panel", "x": 400, "y": 400, "width": 120, "height": 160, "label": "Wall Panel", "action": "examine_panel" },
         { "id": "emergency_locker", "x": 1400, "y": 400, "width": 100, "height": 160, "label": "Emergency Locker", "action": "examine_locker" }
       ],
+      "items": [
+        { "id": "pickup_multi_tool", "itemId": "multi_tool", "x": 460, "y": 440, "label": "Multi-Tool" },
+        { "id": "pickup_water_filter", "itemId": "water_filter", "x": 1450, "y": 440, "label": "Water Filter" }
+      ],
       "parallaxLayers": [
         { "speed": 0.02, "starCount": 40, "starSize": 1, "color": "0x444444" },
         { "speed": 0.08, "starCount": 20, "starSize": 1.5, "color": "0x666666" }
@@ -59,6 +67,11 @@
         { "id": "warp_core", "x": 960, "y": 400, "width": 200, "height": 300, "label": "Warp Core", "action": "examine_warp_core" },
         { "id": "engineering_console", "x": 1500, "y": 500, "width": 200, "height": 150, "label": "Engineering Console", "action": "examine_eng_console" },
         { "id": "fuel_gauge", "x": 400, "y": 500, "width": 120, "height": 100, "label": "Fuel Gauge", "action": "examine_fuel" }
+      ],
+      "items": [
+        { "id": "pickup_hydro_spanner", "itemId": "hydro_spanner", "x": 1500, "y": 550, "label": "Hydro Spanner" },
+        { "id": "pickup_power_cell", "itemId": "power_cell", "x": 460, "y": 530, "label": "Power Cell" },
+        { "id": "pickup_warp_coil", "itemId": "warp_coil", "x": 960, "y": 500, "label": "Warp Coil" }
       ],
       "parallaxLayers": [
         { "speed": 0.03, "starCount": 30, "starSize": 1, "color": "0xff6644" },
@@ -82,6 +95,11 @@
         { "id": "personal_terminal", "x": 1400, "y": 400, "width": 180, "height": 140, "label": "Personal Terminal", "action": "examine_terminal" },
         { "id": "locker", "x": 960, "y": 300, "width": 100, "height": 180, "label": "Personal Locker", "action": "examine_locker" }
       ],
+      "items": [
+        { "id": "pickup_ration_pack", "itemId": "ration_pack", "x": 500, "y": 540, "label": "Ration Pack" },
+        { "id": "pickup_data_chip", "itemId": "data_chip", "x": 1400, "y": 440, "label": "Data Chip" },
+        { "id": "pickup_crew_manifest", "itemId": "crew_manifest", "x": 960, "y": 340, "label": "Crew Manifest" }
+      ],
       "parallaxLayers": [
         { "speed": 0.04, "starCount": 25, "starSize": 1, "color": "0x44aa44" },
         { "speed": 0.12, "starCount": 15, "starSize": 1.5, "color": "0x66cc66" }
@@ -102,6 +120,11 @@
         { "id": "observation_window", "x": 960, "y": 300, "width": 600, "height": 300, "label": "Observation Window", "action": "look_out_window" },
         { "id": "star_chart", "x": 300, "y": 500, "width": 150, "height": 120, "label": "Star Chart", "action": "examine_chart" },
         { "id": "telescope", "x": 1600, "y": 400, "width": 120, "height": 200, "label": "Telescope", "action": "use_telescope" }
+      ],
+      "items": [
+        { "id": "pickup_star_map", "itemId": "star_map", "x": 300, "y": 540, "label": "Star Map Fragment" },
+        { "id": "pickup_lens_cap", "itemId": "lens_cap", "x": 1600, "y": 440, "label": "Telescope Lens Cap" },
+        { "id": "pickup_comms_beacon", "itemId": "comms_beacon", "x": 960, "y": 500, "label": "Comms Beacon" }
       ],
       "parallaxLayers": [
         { "speed": 0.02, "starCount": 150, "starSize": 1, "color": "0x8866aa" },

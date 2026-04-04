@@ -35,6 +35,43 @@ export interface IParallaxLayer {
   color: string;
 }
 
+export interface IItemDef {
+  id: string;
+  name: string;
+  description: string;
+  iconColor: string;
+  usable: boolean;
+  useTargets: string[];
+  combineWith: string | null;
+  combineResult: string | null;
+}
+
+export interface IItemPickupDef {
+  id: string;
+  itemId: string;
+  x: number;
+  y: number;
+  label: string;
+}
+
+export interface IRoomDef {
+  id: string;
+  name: string;
+  theme: {
+    bgTop: string;
+    bgBottom: string;
+    accent: string;
+  };
+  exits: IExitDef[];
+  hotspots: IHotspotDef[];
+  items: IItemPickupDef[];
+  parallaxLayers: IParallaxLayer[];
+}
+
+export interface IItemsData {
+  items: IItemDef[];
+}
+
 export interface IRoomsData {
   rooms: IRoomDef[];
 }
