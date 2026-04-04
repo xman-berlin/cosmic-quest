@@ -4,6 +4,7 @@ import { InventorySystem } from '../systems/InventorySystem.js';
 import { PuzzleEngine } from '../systems/PuzzleEngine.js';
 import { DialogSystem } from '../systems/DialogSystem.js';
 import { AudioManager } from '../systems/AudioManager.js';
+import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { Hotspot } from '../entities/Hotspot.js';
 import { Player } from '../entities/Player.js';
 import { BackgroundRenderer } from '../effects/BackgroundRenderer.js';
@@ -29,6 +30,7 @@ export class GameScene extends Scene {
   #puzzleEngine!: PuzzleEngine;
   #dialogSystem!: DialogSystem;
   #audioManager!: AudioManager;
+  #achievementSystem!: AchievementSystem;
   #player!: Player;
   #bgRenderer!: BackgroundRenderer;
   #particles!: ParticleEffects;
@@ -62,6 +64,10 @@ export class GameScene extends Scene {
     this.#dialogSystem = new DialogSystem(dialogsData, this.#roomManager.saveData);
     this.#dialogSystem.setInventorySystem(this.#inventorySystem);
     this.#audioManager = new AudioManager();
+    this.#achievementSystem = new AchievementSystem({});
+    this.#achievementSystem.onUnlock = (ach) => {
+      this.#showAchievement(ach);
+    };
     this.#bgRenderer = new BackgroundRenderer(this);
     this.#particles = new ParticleEffects(this);
     this.#lighting = new Lighting(this);
@@ -73,6 +79,11 @@ export class GameScene extends Scene {
       if (event === 'itemAdded' && result.success) {
         this.#particles.createSparkle(960, 540, 0x44ffaa, 25);
         this.#audioManager.playSfx('pickup');
+        this.#itemsCollected++;
+        this.#achievementSystem.updateState({ itemsCollected: this.#itemsCollected });
+      }
+      if (event === 'itemCombined' && result.success) {
+        this.#achievementSystem.updateState({ itemsCombined: 1 });
       }
     };
 
@@ -85,6 +96,7 @@ export class GameScene extends Scene {
         this.#postProcessing.flashScreen(0x44ff44, 300);
         this.#audioManager.playSfx('success');
         this.#updateStats();
+        this.#achievementSystem.updateState({ puzzlesSolved: this.#puzzlesSolved });
         this.#checkGameCompletion();
       } else if (event === 'stepCompleted') {
         this.#audioManager.playSfx('puzzle');
@@ -92,6 +104,7 @@ export class GameScene extends Scene {
     };
 
     this.#roomManager.onRoomChange = () => {
+      this.#achievementSystem.updateState({ roomsVisited: this.#roomManager.visitedRooms.size });
       this.#renderRoom();
     };
 
@@ -246,7 +259,6 @@ export class GameScene extends Scene {
       if (roomState && !roomState.itemsCollected.includes(pickup.id)) {
         roomState.itemsCollected.push(pickup.id);
       }
-      this.#itemsCollected++;
       this.#particles.createSparkle(pickup.x, pickup.y, 0x44ffaa, 30);
       this.#showMessage(result.message, '#44ffaa');
       this.#renderRoom();
@@ -503,6 +515,8 @@ export class GameScene extends Scene {
     const completed = allPuzzles.filter((p) => this.#puzzleEngine.isCompleted(p.id)).length;
 
     if (completed >= allPuzzles.length) {
+      const elapsed = Math.floor((Date.now() - this.#gameStartTime) / 60000);
+      this.#achievementSystem.updateState({ gameCompleted: true, timePlayed: elapsed });
       this.#showGameComplete();
     }
   }
@@ -615,6 +629,52 @@ export class GameScene extends Scene {
     panel.add(closeHint);
 
     this.#volumePanel = panel;
+  }
+
+  #showAchievement(achievement: { title: string; description: string; icon: string }) {
+    const panel = this.add.container(this.cameras.main.width / 2, -80).setDepth(300);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0a0a2e, 0.95);
+    bg.fillRoundedRect(-200, -30, 400, 60, 10);
+    bg.lineStyle(2, 0xffaa44, 1);
+    bg.strokeRoundedRect(-200, -30, 400, 60, 10);
+    panel.add(bg);
+
+    const icon = this.add.text(-170, 0, achievement.icon, {
+      font: '28px monospace',
+    }).setOrigin(0, 0.5);
+    panel.add(icon);
+
+    const title = this.add.text(-130, -12, '🏆 ACHIEVEMENT UNLOCKED', {
+      font: 'bold 12px monospace',
+      color: '#ffaa44',
+    }).setOrigin(0, 0);
+    panel.add(title);
+
+    const name = this.add.text(-130, 8, achievement.title, {
+      font: 'bold 16px monospace',
+      color: '#ffffff',
+    }).setOrigin(0, 0);
+    panel.add(name);
+
+    this.tweens.add({
+      targets: panel,
+      y: 60,
+      duration: 500,
+      ease: 'Back.easeOut',
+    });
+
+    this.tweens.add({
+      targets: panel,
+      y: -80,
+      delay: 4000,
+      duration: 500,
+      ease: 'Power2',
+      onComplete: () => panel.destroy(),
+    });
+
+    this.#audioManager.playSfx('success');
   }
 
   update(_time: number, _delta: number) {
