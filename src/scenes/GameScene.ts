@@ -39,7 +39,12 @@ export class GameScene extends Scene {
   #minimapText!: GameObjects.Text;
   #messageText!: GameObjects.Text;
   #puzzleStatusText!: GameObjects.Text;
+  #statsText!: GameObjects.Text;
+  #volumePanel: GameObjects.Container | null = null;
   #isTransitioning = false;
+  #gameStartTime = Date.now();
+  #puzzlesSolved = 0;
+  #itemsCollected = 0;
 
   constructor() {
     super({ key: 'game' });
@@ -74,10 +79,13 @@ export class GameScene extends Scene {
     this.#puzzleEngine.onEvent = (event, result) => {
       this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
       if (event === 'puzzleCompleted' && result.success) {
+        this.#puzzlesSolved++;
         this.#particles.createExplosion(960, 540, 0xffaa44, 50);
         this.#postProcessing.screenShake(0.008, 400);
         this.#postProcessing.flashScreen(0x44ff44, 300);
         this.#audioManager.playSfx('success');
+        this.#updateStats();
+        this.#checkGameCompletion();
       } else if (event === 'stepCompleted') {
         this.#audioManager.playSfx('puzzle');
       }
@@ -91,6 +99,7 @@ export class GameScene extends Scene {
     this.#createMessageArea();
     this.#createInventoryToggle();
     this.#createPuzzleStatusText();
+    this.#createStatsText();
 
     this.cameras.main.fadeIn(500);
 
@@ -237,9 +246,11 @@ export class GameScene extends Scene {
       if (roomState && !roomState.itemsCollected.includes(pickup.id)) {
         roomState.itemsCollected.push(pickup.id);
       }
+      this.#itemsCollected++;
       this.#particles.createSparkle(pickup.x, pickup.y, 0x44ffaa, 30);
       this.#showMessage(result.message, '#44ffaa');
       this.#renderRoom();
+      this.#updateStats();
     } else {
       this.#showMessage(result.message, '#ff4444');
     }
@@ -473,10 +484,137 @@ export class GameScene extends Scene {
     });
 
     this.input.keyboard?.on('keydown-ESC', () => {
-      this.#player.setMode('default');
-      this.#puzzleEngine.resetActivePuzzle();
-      this.#updatePuzzleStatus();
+      if (this.#volumePanel) {
+        this.#toggleVolumePanel();
+      } else {
+        this.#player.setMode('default');
+        this.#puzzleEngine.resetActivePuzzle();
+        this.#updatePuzzleStatus();
+      }
     });
+
+    this.input.keyboard?.on('keydown-V', () => {
+      this.#toggleVolumePanel();
+    });
+  }
+
+  #checkGameCompletion() {
+    const allPuzzles = this.#puzzleEngine.getAllPuzzles();
+    const completed = allPuzzles.filter((p) => this.#puzzleEngine.isCompleted(p.id)).length;
+
+    if (completed >= allPuzzles.length) {
+      this.#showGameComplete();
+    }
+  }
+
+  #showGameComplete() {
+    const elapsed = Math.floor((Date.now() - this.#gameStartTime) / 60000);
+
+    this.cameras.main.fadeOut(1000, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.launch('credits', {
+        puzzlesSolved: this.#puzzlesSolved,
+        itemsCollected: this.#itemsCollected,
+        timePlayed: elapsed,
+      });
+    });
+  }
+
+  #createStatsText() {
+    this.#statsText = this.add.text(20, this.cameras.main.height - 30, '', {
+      font: '11px monospace',
+      color: '#666666',
+    }).setScrollFactor(0);
+  }
+
+  #updateStats() {
+    const elapsed = Math.floor((Date.now() - this.#gameStartTime) / 60000);
+    this.#statsText.setText(`Time: ${elapsed}m | Puzzles: ${this.#puzzlesSolved} | Items: ${this.#itemsCollected}`);
+  }
+
+  #toggleVolumePanel() {
+    if (this.#volumePanel) {
+      this.#volumePanel.destroy();
+      this.#volumePanel = null;
+      return;
+    }
+
+    const panel = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2).setDepth(200);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0a0a2e, 0.95);
+    bg.fillRoundedRect(-150, -100, 300, 200, 12);
+    bg.lineStyle(2, 0x4488ff, 0.8);
+    bg.strokeRoundedRect(-150, -100, 300, 200, 12);
+    panel.add(bg);
+
+    const title = this.add.text(0, -80, 'AUDIO SETTINGS', {
+      font: 'bold 16px monospace',
+      color: '#4488ff',
+    }).setOrigin(0.5, 0);
+    panel.add(title);
+
+    const config = this.#audioManager.config;
+    const sliders = [
+      { label: 'Master', value: config.masterVolume, setter: (v: number) => this.#audioManager.setMasterVolume(v) },
+      { label: 'SFX', value: config.sfxVolume, setter: (v: number) => this.#audioManager.setSfxVolume(v) },
+      { label: 'Ambient', value: config.ambientVolume, setter: (v: number) => this.#audioManager.setAmbientVolume(v) },
+    ];
+
+    sliders.forEach((slider, i) => {
+      const y = -30 + i * 50;
+
+      const label = this.add.text(-120, y, slider.label, {
+        font: '14px monospace',
+        color: '#aaccff',
+      }).setOrigin(0, 0.5);
+      panel.add(label);
+
+      const track = this.add.graphics();
+      track.lineStyle(2, 0x444466, 0.6);
+      track.lineBetween(-60, y, 100, y);
+      panel.add(track);
+
+      const fill = this.add.graphics();
+      fill.lineStyle(3, 0x4488ff, 1);
+      const fillWidth = slider.value * 160;
+      fill.lineBetween(-60, y, -60 + fillWidth, y);
+      panel.add(fill);
+
+      const valueText = this.add.text(120, y, `${Math.round(slider.value * 100)}%`, {
+        font: '12px monospace',
+        color: '#888888',
+      }).setOrigin(0, 0.5);
+      panel.add(valueText);
+
+      const hitArea = this.add.graphics();
+      hitArea.fillStyle(0x000000, 0);
+      hitArea.fillRect(-60, y - 10, 160, 20);
+      hitArea.setInteractive(
+        new Phaser.Geom.Rectangle(-60, y - 10, 160, 20),
+        Phaser.Geom.Rectangle.Contains,
+      );
+      panel.add(hitArea);
+
+      hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        const localX = pointer.x - panel.x;
+        const value = Math.max(0, Math.min(1, (localX + 60) / 160));
+        slider.setter(value);
+        fill.clear();
+        fill.lineStyle(3, 0x4488ff, 1);
+        fill.lineBetween(-60, y, -60 + value * 160, y);
+        valueText.setText(`${Math.round(value * 100)}%`);
+        this.#audioManager.playSfx('click');
+      });
+    });
+
+    const closeHint = this.add.text(0, 80, '[V] or [ESC] to close', {
+      font: '12px monospace',
+      color: '#666666',
+    }).setOrigin(0.5, 0);
+    panel.add(closeHint);
+
+    this.#volumePanel = panel;
   }
 
   update(_time: number, _delta: number) {
