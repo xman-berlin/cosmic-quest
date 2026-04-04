@@ -3,6 +3,7 @@ import { RoomManager } from '../systems/RoomManager.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
 import { PuzzleEngine } from '../systems/PuzzleEngine.js';
 import { DialogSystem } from '../systems/DialogSystem.js';
+import { AudioManager } from '../systems/AudioManager.js';
 import { Hotspot } from '../entities/Hotspot.js';
 import { Player } from '../entities/Player.js';
 import { BackgroundRenderer } from '../effects/BackgroundRenderer.js';
@@ -27,6 +28,7 @@ export class GameScene extends Scene {
   #inventorySystem!: InventorySystem;
   #puzzleEngine!: PuzzleEngine;
   #dialogSystem!: DialogSystem;
+  #audioManager!: AudioManager;
   #player!: Player;
   #bgRenderer!: BackgroundRenderer;
   #particles!: ParticleEffects;
@@ -54,6 +56,7 @@ export class GameScene extends Scene {
     this.#puzzleEngine = new PuzzleEngine(puzzlesData, this.#roomManager.saveData);
     this.#dialogSystem = new DialogSystem(dialogsData, this.#roomManager.saveData);
     this.#dialogSystem.setInventorySystem(this.#inventorySystem);
+    this.#audioManager = new AudioManager();
     this.#bgRenderer = new BackgroundRenderer(this);
     this.#particles = new ParticleEffects(this);
     this.#lighting = new Lighting(this);
@@ -64,6 +67,7 @@ export class GameScene extends Scene {
       this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
       if (event === 'itemAdded' && result.success) {
         this.#particles.createSparkle(960, 540, 0x44ffaa, 25);
+        this.#audioManager.playSfx('pickup');
       }
     };
 
@@ -73,6 +77,9 @@ export class GameScene extends Scene {
         this.#particles.createExplosion(960, 540, 0xffaa44, 50);
         this.#postProcessing.screenShake(0.008, 400);
         this.#postProcessing.flashScreen(0x44ff44, 300);
+        this.#audioManager.playSfx('success');
+      } else if (event === 'stepCompleted') {
+        this.#audioManager.playSfx('puzzle');
       }
     };
 
@@ -106,6 +113,8 @@ export class GameScene extends Scene {
     this.#setupRoomLighting(room);
     this.#setupPostProcessing(room);
 
+    this.#audioManager.fadeAmbientTo(room.id, 800);
+
     for (const exit of room.exits) {
       const hotspot = new Hotspot(
         this,
@@ -118,6 +127,7 @@ export class GameScene extends Scene {
 
       hotspot.on('pointerdown', () => {
         if (!this.#isTransitioning) {
+          this.#audioManager.playSfx('click');
           this.#navigateToRoom(exit.target);
         }
       });
@@ -137,6 +147,7 @@ export class GameScene extends Scene {
       );
 
       hotspot.on('pointerdown', () => {
+        this.#audioManager.playSfx('click');
         this.#handleHotspotInteraction(room.id, hs);
       });
 
@@ -289,6 +300,7 @@ export class GameScene extends Scene {
 
   #navigateToRoom(targetId: string) {
     this.#isTransitioning = true;
+    this.#audioManager.playSfx('transition');
 
     this.cameras.main.fadeOut(500, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -418,12 +430,14 @@ export class GameScene extends Scene {
 
     toggleBtn.on('pointerdown', () => {
       if (!this.#isTransitioning) {
+        this.#audioManager.playSfx('click');
         this.scene.launch('inventory', { inventorySystem: this.#inventorySystem });
       }
     });
 
     toggleBtn.on('pointerover', () => {
       toggleBtn.setStyle({ backgroundColor: '#2244aa' });
+      this.#audioManager.playSfx('hover');
     });
 
     toggleBtn.on('pointerout', () => {

@@ -11,6 +11,7 @@ export class Hotspot extends GameObjects.Container {
   #accentColor: number;
   #width: number;
   #height: number;
+  #pulseTween: Phaser.Tweens.Tween | null = null;
 
   constructor(
     scene: Scene,
@@ -54,8 +55,7 @@ export class Hotspot extends GameObjects.Container {
     this.#height = hsH;
 
     this.#bg = scene.add.graphics();
-    this.#bg.fillStyle(0x000000, 0);
-    this.#bg.fillRect(0, 0, hsW, hsH);
+    this.#drawFill(false);
     this.add(this.#bg);
 
     this.#border = scene.add.graphics();
@@ -63,8 +63,10 @@ export class Hotspot extends GameObjects.Container {
     this.add(this.#border);
 
     this.#label = scene.add.text(hsW / 2, hsH + 8, labelText, {
-      font: '14px monospace',
-      color: '#aaccff',
+      font: 'bold 14px monospace',
+      color: '#ffffff',
+      backgroundColor: '#000000aa',
+      padding: { x: 6, y: 3 },
     }).setOrigin(0.5, 0);
     this.add(this.#label);
 
@@ -76,35 +78,79 @@ export class Hotspot extends GameObjects.Container {
 
     this.on('pointerover', () => this.#onHover(true));
     this.on('pointerout', () => this.#onHover(false));
+
+    if (this.#hotspotType === 'interactive') {
+      this.#pulseTween = scene.tweens.add({
+        targets: this,
+        alpha: 0.6,
+        duration: 1500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
+  }
+
+  #drawFill(active: boolean) {
+    this.#bg.clear();
+
+    if (this.#hotspotType === 'interactive') {
+      const alpha = active ? 0.25 : 0.12;
+      this.#bg.fillStyle(this.#accentColor, alpha);
+      this.#bg.fillRect(0, 0, this.#width, this.#height);
+    } else if (this.#hotspotType === 'pickup') {
+      this.#bg.fillStyle(0x44ffaa, active ? 0.3 : 0.15);
+      this.#bg.fillRect(0, 0, this.#width, this.#height);
+    } else if (this.#hotspotType === 'exit') {
+      this.#bg.fillStyle(0x4488ff, active ? 0.2 : 0.08);
+      this.#bg.fillRect(0, 0, this.#width, this.#height);
+    }
   }
 
   #drawBorder(active: boolean) {
     this.#border.clear();
 
-    const color = active ? this.#accentColor : 0x4488ff;
-    const alpha = active ? 0.8 : 0.3;
+    let color: number;
+    let alpha: number;
+    let lineWidth: number;
 
-    this.#border.lineStyle(2, color, alpha);
+    if (this.#hotspotType === 'interactive') {
+      color = active ? 0xffffff : this.#accentColor;
+      alpha = active ? 1 : 0.6;
+      lineWidth = active ? 3 : 2;
+    } else if (this.#hotspotType === 'pickup') {
+      color = active ? 0xffffff : 0x44ffaa;
+      alpha = active ? 1 : 0.7;
+      lineWidth = 2;
+    } else {
+      color = active ? 0xffffff : 0x4488ff;
+      alpha = active ? 1 : 0.4;
+      lineWidth = 2;
+    }
+
+    this.#border.lineStyle(lineWidth, color, alpha);
     this.#border.strokeRect(0, 0, this.#width, this.#height);
 
     if (active) {
-      this.#border.fillStyle(color, 0.15);
+      this.#border.fillStyle(color, 0.1);
       this.#border.fillRect(0, 0, this.#width, this.#height);
     }
   }
 
   #onHover(hovered: boolean) {
+    this.#drawFill(hovered);
     this.#drawBorder(hovered);
 
-    if (this.#hotspotType === 'exit' && hovered) {
+    if (hovered) {
       this.scene.input.setDefaultCursor('pointer');
-    } else if (this.#hotspotType === 'exit') {
+    } else {
       this.scene.input.setDefaultCursor('default');
     }
   }
 
   activate(): void {
     this.#drawBorder(true);
+    this.#drawFill(true);
     this.scene.tweens.add({
       targets: this,
       scaleX: 1.05,
@@ -124,9 +170,8 @@ export class Hotspot extends GameObjects.Container {
   }
 
   destroy(fromScene?: boolean): void {
-    if (this.#hotspotType === 'exit') {
-      this.scene.input.setDefaultCursor('default');
-    }
+    this.#pulseTween?.destroy();
+    this.scene.input.setDefaultCursor('default');
     super.destroy(fromScene);
   }
 }
