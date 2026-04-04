@@ -1,0 +1,147 @@
+{
+  "puzzles": [
+    {
+      "id": "console_access",
+      "type": "inventory",
+      "title": "Console Access",
+      "description": "Gain access to the main console on the bridge.",
+      "trigger": "main_console",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Use a keycard or ID badge on the main console", "required": ["keycard", "id_badge"], "targetHotspot": "main_console" }
+      ],
+      "rewards": ["ship_logs_hint"],
+      "effects": { "flag": "console_accessed", "grantItem": "encrypted_log" },
+      "prerequisites": []
+    },
+    {
+      "id": "warp_core_repair",
+      "type": "inventory",
+      "title": "Warp Core Repair",
+      "description": "Repair the damaged warp core using the hydro spanner and a replacement coil.",
+      "trigger": "warp_core",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Use the hydro spanner on the warp core", "required": ["hydro_spanner"], "targetHotspot": "warp_core" },
+        { "id": "step2", "type": "inventory", "description": "Install the warp coil", "required": ["warp_coil"], "targetHotspot": "warp_core" }
+      ],
+      "rewards": ["warp_online"],
+      "effects": { "flag": "warp_repaired", "unlock": "observation_deck_access" },
+      "prerequisites": []
+    },
+    {
+      "id": "decode_logs",
+      "type": "sequence",
+      "title": "Decode the Ship Logs",
+      "description": "Use the data chip on the personal terminal to decode encrypted logs.",
+      "trigger": "personal_terminal",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Insert the data chip into the personal terminal", "required": ["data_chip"], "targetHotspot": "personal_terminal" }
+      ],
+      "rewards": ["decoded_logs"],
+      "effects": { "flag": "logs_decoded", "grantItem": "encrypted_log" },
+      "prerequisites": []
+    },
+    {
+      "id": "emergency_supplies",
+      "type": "inventory",
+      "title": "Emergency Supplies",
+      "description": "Open the emergency locker in the corridor to find useful supplies.",
+      "trigger": "emergency_locker",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Use the multi-tool to pry open the emergency locker", "required": ["multi_tool"], "targetHotspot": "emergency_locker" }
+      ],
+      "rewards": ["comms_beacon_access"],
+      "effects": { "flag": "locker_opened", "grantItem": "comms_beacon" },
+      "prerequisites": []
+    },
+    {
+      "id": "telescope_observation",
+      "type": "inventory",
+      "title": "Telescope Observation",
+      "description": "Use the telescope with the lens cap and star map to find the uncharted system.",
+      "trigger": "telescope",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Attach the lens cap to the telescope", "required": ["lens_cap"], "targetHotspot": "telescope" },
+        { "id": "step2", "type": "inventory", "description": "Use the star map to align the telescope", "required": ["star_map"], "targetHotspot": "telescope" }
+      ],
+      "rewards": ["coordinates_found"],
+      "effects": { "flag": "coordinates_found" },
+      "prerequisites": []
+    },
+    {
+      "id": "send_distress",
+      "type": "environment",
+      "title": "Send Distress Signal",
+      "description": "Use the comms beacon on the viewscreen to broadcast a distress signal.",
+      "trigger": "viewscreen",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Activate the comms beacon at the viewscreen", "required": ["comms_beacon"], "targetHotspot": "viewscreen" }
+      ],
+      "rewards": ["game_progress"],
+      "effects": { "flag": "distress_sent" },
+      "prerequisites": ["console_access", "warp_core_repair"]
+    },
+    {
+      "id": "survival_prep",
+      "type": "inventory",
+      "title": "Survival Preparation",
+      "description": "Combine rations and water filter to create a survival kit.",
+      "trigger": "captain_chair",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Combine ration pack with water filter", "required": ["ration_pack", "water_filter"], "targetHotspot": "captain_chair" }
+      ],
+      "rewards": ["survival_ready"],
+      "effects": { "flag": "survival_kit_created" },
+      "prerequisites": []
+    },
+    {
+      "id": "wall_panel_code",
+      "type": "sequence",
+      "title": "Wall Panel Sequence",
+      "description": "Enter the correct sequence on the wall panel to unlock the engineering override.",
+      "trigger": "wall_panel",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "sequence", "description": "Enter the sequence: ALPHA, GAMMA, BETA", "sequence": ["ALPHA", "GAMMA", "BETA"], "targetHotspot": "wall_panel" }
+      ],
+      "rewards": ["engineering_override"],
+      "effects": { "flag": "panel_solved", "unlock": "engineering_console_full" },
+      "prerequisites": []
+    },
+    {
+      "id": "fuel_calibration",
+      "type": "sequence",
+      "title": "Fuel Gauge Calibration",
+      "description": "Calibrate the fuel gauge using the hydro spanner in the correct order.",
+      "trigger": "fuel_gauge",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Use the hydro spanner on the fuel gauge", "required": ["hydro_spanner"], "targetHotspot": "fuel_gauge" },
+        { "id": "step2", "type": "sequence", "description": "Calibrate: HIGH, LOW, MEDIUM", "sequence": ["HIGH", "LOW", "MEDIUM"], "targetHotspot": "fuel_gauge" }
+      ],
+      "rewards": ["fuel_calibrated"],
+      "effects": { "flag": "fuel_calibrated" },
+      "prerequisites": []
+    },
+    {
+      "id": "star_chart_decipher",
+      "type": "environment",
+      "title": "Star Chart Decipher",
+      "description": "Use the star map fragment to complete the star chart and reveal coordinates.",
+      "trigger": "star_chart",
+      "state": "locked",
+      "steps": [
+        { "id": "step1", "type": "inventory", "description": "Place the star map fragment on the chart", "required": ["star_map"], "targetHotspot": "star_chart" }
+      ],
+      "rewards": ["chart_complete"],
+      "effects": { "flag": "chart_deciphered" },
+      "prerequisites": []
+    }
+  ]
+}

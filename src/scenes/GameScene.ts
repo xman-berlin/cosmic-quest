@@ -1,23 +1,36 @@
 import { Scene, GameObjects } from 'phaser';
 import { RoomManager } from '../systems/RoomManager.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
+import { PuzzleEngine } from '../systems/PuzzleEngine.js';
+import { DialogSystem } from '../systems/DialogSystem.js';
 import { Hotspot } from '../entities/Hotspot.js';
 import { Player } from '../entities/Player.js';
 import { BackgroundRenderer } from '../effects/BackgroundRenderer.js';
-import type { IRoomsData, IItemsData } from '../entities/types.js';
+import type { IRoomsData, IItemsData, IPuzzlesData, IDialogsData } from '../entities/types.js';
 
 import roomsJson from '../data/rooms.json' with { type: 'json' };
 import itemsJson from '../data/items.json' with { type: 'json' };
+import puzzlesJson from '../data/puzzles.json' with { type: 'json' };
+import dialogsJson from '../data/dialogs.json' with { type: 'json' };
+
+const DIALOG_TREE_MAP: Record<string, string> = {
+  captain_chair: 'captain_dialog',
+  engineering_console: 'engineer_dialog',
+  observation_window: 'science_officer_dialog',
+};
 
 export class GameScene extends Scene {
   #roomManager!: RoomManager;
   #inventorySystem!: InventorySystem;
+  #puzzleEngine!: PuzzleEngine;
+  #dialogSystem!: DialogSystem;
   #player!: Player;
   #bgRenderer!: BackgroundRenderer;
   #hotspots: Hotspot[] = [];
   #roomNameText!: GameObjects.Text;
   #minimapText!: GameObjects.Text;
   #messageText!: GameObjects.Text;
+  #puzzleStatusText!: GameObjects.Text;
   #isTransitioning = false;
 
   constructor() {
@@ -27,13 +40,22 @@ export class GameScene extends Scene {
   create() {
     const roomsData = roomsJson as IRoomsData;
     const itemsData = itemsJson as IItemsData;
+    const puzzlesData = puzzlesJson as IPuzzlesData;
+    const dialogsData = dialogsJson as IDialogsData;
 
     this.#roomManager = new RoomManager(roomsData);
     this.#inventorySystem = new InventorySystem(itemsData, this.#roomManager.saveData);
+    this.#puzzleEngine = new PuzzleEngine(puzzlesData, this.#roomManager.saveData);
+    this.#dialogSystem = new DialogSystem(dialogsData, this.#roomManager.saveData);
+    this.#dialogSystem.setInventorySystem(this.#inventorySystem);
     this.#bgRenderer = new BackgroundRenderer(this);
     this.#player = new Player(this);
 
     this.#inventorySystem.onEvent = (_event, result) => {
+      this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
+    };
+
+    this.#puzzleEngine.onEvent = (_event, result) => {
       this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
     };
 
@@ -44,6 +66,7 @@ export class GameScene extends Scene {
     this.#createMinimap();
     this.#createMessageArea();
     this.#createInventoryToggle();
+    this.#createPuzzleStatusText();
 
     this.cameras.main.fadeIn(500);
 
@@ -129,10 +152,29 @@ export class GameScene extends Scene {
     }).setOrigin(0.5, 0);
 
     this.#updateMinimap();
+    this.#updatePuzzleStatus();
   }
 
   #handleHotspotInteraction(roomId: string, hs: { id: string; label: string; action: string }) {
     const selectedItem = this.#inventorySystem.selectedItem;
+
+    const puzzles = this.#puzzleEngine.getPuzzlesForHotspot(hs.id);
+    if (puzzles.length > 0) {
+      const puzzle = puzzles[0]!;
+      const result = this.#puzzleEngine.activatePuzzle(puzzle.id);
+      if (result.success) {
+        if (selectedItem) {
+          const useResult = this.#puzzleEngine.submitItemUse(selectedItem, hs.id);
+          if (useResult.success) {
+            this.#showMessage(useResult.message, '#44ff44');
+            this.#updatePuzzleStatus();
+            return;
+          }
+        }
+        this.scene.launch('puzzle', { puzzleEngine: this.#puzzleEngine, puzzleId: puzzle.id });
+        return;
+      }
+    }
 
     if (selectedItem) {
       const result = this.#inventorySystem.useItemOn(selectedItem, hs.id);
@@ -140,6 +182,12 @@ export class GameScene extends Scene {
         this.#showMessage(result.message, '#44ff44');
         return;
       }
+    }
+
+    const treeId = DIALOG_TREE_MAP[hs.id];
+    if (treeId && this.#player.mode === 'talk') {
+      this.scene.launch('dialog', { dialogSystem: this.#dialogSystem, treeId });
+      return;
     }
 
     const hotspot = this.#hotspots.find((h) => h.hotspotType === 'interactive');
@@ -275,6 +323,25 @@ export class GameScene extends Scene {
     }).setOrigin(0.5, 0).setVisible(false);
   }
 
+  #createPuzzleStatusText() {
+    this.#puzzleStatusText = this.add.text(this.cameras.main.width - 20, 60, '', {
+      font: '12px monospace',
+      color: '#ffaa44',
+      backgroundColor: '#000000aa',
+      padding: { x: 8, y: 4 },
+    }).setOrigin(1, 0).setScrollFactor(0);
+  }
+
+  #updatePuzzleStatus() {
+    const active = this.#puzzleEngine.getActivePuzzle();
+    if (!active) {
+      this.#puzzleStatusText.setText('');
+      return;
+    }
+    const progress = this.#puzzleEngine.getActivePuzzleProgress();
+    this.#puzzleStatusText.setText(`PUZZLE: ${active.title} (${progress.current}/${progress.total})`);
+  }
+
   #createInventoryToggle() {
     const toggleBtn = this.add.text(this.cameras.main.width - 20, 20, '[I]', {
       font: 'bold 16px monospace',
@@ -327,6 +394,8 @@ export class GameScene extends Scene {
 
     this.input.keyboard?.on('keydown-ESC', () => {
       this.#player.setMode('default');
+      this.#puzzleEngine.resetActivePuzzle();
+      this.#updatePuzzleStatus();
     });
   }
 

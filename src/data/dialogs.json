@@ -1,0 +1,161 @@
+{
+  "dialogs": [
+    {
+      "id": "captain_dialog",
+      "npc": "Captain",
+      "greeting": "Ah, you're awake. We have a situation.",
+      "nodes": [
+        {
+          "id": "cap_greeting",
+          "speaker": "Captain",
+          "text": "Ah, you're awake. We have a situation.",
+          "choices": [
+            { "text": "What happened?", "nextNode": "cap_explain" },
+            { "text": "Where are we?", "nextNode": "cap_location" },
+            { "text": "I'll handle it.", "nextNode": "cap_mission" }
+          ]
+        },
+        {
+          "id": "cap_explain",
+          "speaker": "Captain",
+          "text": "The warp core took a hit during the storm. We're drifting in uncharted space. I need you to get us back online.",
+          "choices": [
+            { "text": "What do I need to do?", "nextNode": "cap_mission" },
+            { "text": "Can we call for help?", "nextNode": "cap_comms" }
+          ]
+        },
+        {
+          "id": "cap_location",
+          "speaker": "Captain",
+          "text": "Somewhere in the Outer Rim. The nav computer is offline. Check the observation deck telescope — it might help us triangulate our position.",
+          "choices": [
+            { "text": "I'll check it out.", "nextNode": "cap_mission" },
+            { "text": "What about the warp core?", "nextNode": "cap_warp" }
+          ]
+        },
+        {
+          "id": "cap_warp",
+          "speaker": "Captain",
+          "text": "Engineer Chen left her tools in the engine room. You'll need a hydro spanner and a replacement coil. Good luck.",
+          "choices": [
+            { "text": "On it.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "cap_comms",
+          "speaker": "Captain",
+          "text": "The comms array is down too. If you find a comms beacon, you can rig one from the viewscreen. Range won't be great, but it's something.",
+          "choices": [
+            { "text": "I'll find one.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "cap_mission",
+          "speaker": "Captain",
+          "text": "Priority one: repair the warp core. Priority two: send a distress signal. Check the crew quarters for anything useful. Dismissed.",
+          "choices": [
+            { "text": "Understood.", "nextNode": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "engineer_dialog",
+      "npc": "Engineer Chen",
+      "greeting": "Oh, thank goodness. I've been stuck down here for hours.",
+      "nodes": [
+        {
+          "id": "eng_greeting",
+          "speaker": "Engineer Chen",
+          "text": "Oh, thank goodness. I've been stuck down here for hours.",
+          "choices": [
+            { "text": "What's the damage?", "nextNode": "eng_damage" },
+            { "text": "Are you hurt?", "nextNode": "eng_health" }
+          ]
+        },
+        {
+          "id": "eng_damage",
+          "speaker": "Engineer Chen",
+          "text": "Warp core is fried. I managed to salvage a replacement coil, but I need my hydro spanner to install it. I think I left it on the engineering console.",
+          "choices": [
+            { "text": "I'll find it.", "nextNode": "eng_hint" },
+            { "text": "What about the fuel?", "nextNode": "eng_fuel" }
+          ]
+        },
+        {
+          "id": "eng_health",
+          "speaker": "Engineer Chen",
+          "text": "Just bruised. The core breach knocked me out. Listen — the fuel gauge needs calibration too. Use my spanner: HIGH, LOW, MEDIUM. That's the sequence.",
+          "choices": [
+            { "text": "Thanks for the tip.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "eng_hint",
+          "speaker": "Engineer Chen",
+          "text": "Also, the wall panel in the corridor has a security code. If you ever need engineering override, the sequence is ALPHA, GAMMA, BETA. Don't ask how I know.",
+          "choices": [
+            { "text": "Noted.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "eng_fuel",
+          "speaker": "Engineer Chen",
+          "text": "Fuel's running low. The gauge is off — you'll need to recalibrate it. My spanner should do the trick.",
+          "choices": [
+            { "text": "I'll handle it.", "nextNode": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "science_officer_dialog",
+      "npc": "Dr. Vega",
+      "greeting": "Fascinating. The stellar readings from this position are unlike anything I've seen.",
+      "nodes": [
+        {
+          "id": "sci_greeting",
+          "speaker": "Dr. Vega",
+          "text": "Fascinating. The stellar readings from this position are unlike anything I've seen.",
+          "choices": [
+            { "text": "Where are we, Doctor?", "nextNode": "sci_location" },
+            { "text": "Any useful data?", "nextNode": "sci_data" }
+          ]
+        },
+        {
+          "id": "sci_location",
+          "speaker": "Dr. Vega",
+          "text": "The star chart on the observation deck might help. I found a fragment that could complete it. Look near the telescope.",
+          "choices": [
+            { "text": "I'll check it out.", "nextNode": "sci_telescope" },
+            { "text": "What about the crew?", "nextNode": "sci_crew" }
+          ]
+        },
+        {
+          "id": "sci_data",
+          "speaker": "Dr. Vega",
+          "text": "I've been cataloging everything in the crew quarters. There's a data chip with encrypted logs — might be worth decoding on the personal terminal.",
+          "choices": [
+            { "text": "Good to know.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "sci_telescope",
+          "speaker": "Dr. Vega",
+          "text": "The telescope needs its lens cap. Without it, the readings are useless. Once you align it with the star map, we should get coordinates.",
+          "choices": [
+            { "text": "On it.", "nextNode": null }
+          ]
+        },
+        {
+          "id": "sci_crew",
+          "speaker": "Dr. Vega",
+          "text": "The captain is on the bridge, Engineer Chen is in the engine room. I've been up here cataloging. We're all accounted for — for now.",
+          "choices": [
+            { "text": "Stay safe, Doctor.", "nextNode": null }
+          ]
+        }
+      ]
+    }
+  ]
+}
