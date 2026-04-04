@@ -6,6 +6,9 @@ import { DialogSystem } from '../systems/DialogSystem.js';
 import { Hotspot } from '../entities/Hotspot.js';
 import { Player } from '../entities/Player.js';
 import { BackgroundRenderer } from '../effects/BackgroundRenderer.js';
+import { ParticleEffects } from '../effects/ParticleEffects.js';
+import { Lighting } from '../effects/Lighting.js';
+import { PostProcessing } from '../effects/PostProcessing.js';
 import type { IRoomsData, IItemsData, IPuzzlesData, IDialogsData } from '../entities/types.js';
 
 import roomsJson from '../data/rooms.json' with { type: 'json' };
@@ -26,6 +29,9 @@ export class GameScene extends Scene {
   #dialogSystem!: DialogSystem;
   #player!: Player;
   #bgRenderer!: BackgroundRenderer;
+  #particles!: ParticleEffects;
+  #lighting!: Lighting;
+  #postProcessing!: PostProcessing;
   #hotspots: Hotspot[] = [];
   #roomNameText!: GameObjects.Text;
   #minimapText!: GameObjects.Text;
@@ -49,14 +55,25 @@ export class GameScene extends Scene {
     this.#dialogSystem = new DialogSystem(dialogsData, this.#roomManager.saveData);
     this.#dialogSystem.setInventorySystem(this.#inventorySystem);
     this.#bgRenderer = new BackgroundRenderer(this);
+    this.#particles = new ParticleEffects(this);
+    this.#lighting = new Lighting(this);
+    this.#postProcessing = new PostProcessing(this);
     this.#player = new Player(this);
 
-    this.#inventorySystem.onEvent = (_event, result) => {
+    this.#inventorySystem.onEvent = (event, result) => {
       this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
+      if (event === 'itemAdded' && result.success) {
+        this.#particles.createSparkle(960, 540, 0x44ffaa, 25);
+      }
     };
 
-    this.#puzzleEngine.onEvent = (_event, result) => {
+    this.#puzzleEngine.onEvent = (event, result) => {
       this.#showMessage(result.message, result.success ? '#44ff44' : '#ff4444');
+      if (event === 'puzzleCompleted' && result.success) {
+        this.#particles.createExplosion(960, 540, 0xffaa44, 50);
+        this.#postProcessing.screenShake(0.008, 400);
+        this.#postProcessing.flashScreen(0x44ff44, 300);
+      }
     };
 
     this.#roomManager.onRoomChange = () => {
@@ -82,7 +99,12 @@ export class GameScene extends Scene {
     this.#bgRenderer.drawGradient(room.theme.bgTop, room.theme.bgBottom);
     this.#bgRenderer.createParallaxLayers(room.parallaxLayers);
 
+    this.#particles.createAmbientParticles(0, 0, 1920, 1080, parseInt(room.theme.accent.slice(1), 16) || 0x8888ff, 25);
+
     const accentNum = parseInt(room.theme.accent.slice(1), 16);
+
+    this.#setupRoomLighting(room);
+    this.#setupPostProcessing(room);
 
     for (const exit of room.exits) {
       const hotspot = new Hotspot(
@@ -196,7 +218,7 @@ export class GameScene extends Scene {
     this.#showMessage(`You examine the ${hs.label}...`, '#aaccff');
   }
 
-  #handleItemPickup(roomId: string, pickup: { id: string; itemId: string; label: string }) {
+  #handleItemPickup(roomId: string, pickup: { id: string; itemId: string; label: string; x: number; y: number }) {
     const result = this.#inventorySystem.addItem(pickup.itemId);
 
     if (result.success) {
@@ -204,6 +226,7 @@ export class GameScene extends Scene {
       if (roomState && !roomState.itemsCollected.includes(pickup.id)) {
         roomState.itemsCollected.push(pickup.id);
       }
+      this.#particles.createSparkle(pickup.x, pickup.y, 0x44ffaa, 30);
       this.#showMessage(result.message, '#44ffaa');
       this.#renderRoom();
     } else {
@@ -219,6 +242,49 @@ export class GameScene extends Scene {
     this.#bgRenderer.destroy();
     this.#bgRenderer = new BackgroundRenderer(this);
     this.#roomNameText?.destroy();
+    this.#particles.destroy();
+    this.#lighting.destroy();
+    this.#postProcessing.destroy();
+    this.#particles = new ParticleEffects(this);
+    this.#lighting = new Lighting(this);
+    this.#postProcessing = new PostProcessing(this);
+  }
+
+  #setupRoomLighting(room: { id: string; theme: { accent: string }; hotspots: { x: number; y: number; id: string }[] }): void {
+    const color = parseInt(room.theme.accent.slice(1), 16);
+
+    this.#lighting.addLight('ambient', {
+      x: 960,
+      y: 540,
+      radius: 600,
+      color,
+      intensity: 0.15,
+      flicker: true,
+      flickerSpeed: 300,
+      flickerIntensity: 0.05,
+    });
+
+    for (const hs of room.hotspots) {
+      this.#lighting.addLight(`hotspot_${hs.id}`, {
+        x: hs.x,
+        y: hs.y,
+        radius: 80,
+        color,
+        intensity: 0.1,
+        flicker: true,
+        flickerSpeed: 500,
+        flickerIntensity: 0.03,
+      });
+    }
+
+    if (room.id === 'engine_room') {
+      this.#particles.createEngineGlow(960, 550);
+    }
+  }
+
+  #setupPostProcessing(room: { theme: { accent: string } }): void {
+    this.#postProcessing.enableVignette(0.4);
+    this.#postProcessing.setColorGrade(room.theme.accent, 0.05);
   }
 
   #navigateToRoom(targetId: string) {
